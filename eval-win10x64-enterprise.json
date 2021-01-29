@@ -161,13 +161,21 @@
     }
   ],
   "post-processors": [
+  [
     {
-      "compression_level": 1,
+      "compression_level": 9,
       "keep_input_artifact": false,
       "output": "{{user `box_directory`}}{{.Provider}}/{{user `vm_name`}}{{user `vm_suffix`}}-{{user `cm`}}{{user `cm_version`}}-{{user `version`}}.box",
       "type": "vagrant",
       "vagrantfile_template": "{{template_dir}}/tpl/vagrantfile-eval-win10x64-enterprise.tpl"
+    },
+    {
+      "access_token": "{{user `access_token`}}",
+      "box_tag": "{{user `box_tag`}}",
+      "type": "vagrant-cloud",
+      "version": "{{user `version`}}"
     }
+  ]
   ],
   "provisioners": [
     {
@@ -191,6 +199,8 @@
     }
   ],
   "variables": {
+    "access_token": "{{env `VAGRANT_CLOUD_TOKEN`}}",
+    "box_tag": "",
     "vm_name": "eval-win10x64-enterprise",
     "vm_suffix": "",
     "cm": "chef",
