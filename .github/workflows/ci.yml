@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on:  macos-10.15
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: packer_cache
+          key:  sha256:ecee4ab4ab6a9869d9ea1ba618e3d2cd639b177bc88a229c19d42d16127ffaf4
+      - name: Run packer build
+        env:
+          ISO_URL:             https://software-download.microsoft.com/download/db/444969d5-f34g-4e03-ac9d-1f9786c69161/19044.1288.211006-0501.21h2_release_svc_refresh_CLIENTENTERPRISEEVAL_OEMRET_x64FRE_ja-jp.iso
+          ISO_CHECKSUM:        sha256:ecee4ab4ab6a9869d9ea1ba618e3d2cd639b177bc88a229c19d42d16127ffaf4
+          VAGRANT_CLOUD_TOKEN: ${{ secrets.VAGRANT_CLOUD_TOKEN }}
+        run: |
+          set -eux
+          VBoxManage -v
+          packer -v
+          packer build -only=virtualbox-iso \
+            -var cm=nocm \
+            -var version=0.$(date +%Y%m%d).$(VBoxManage -v | awk -F [.r] '{ printf "%d%d%02d", $1, $2, $3 }') \
+            -var update=false \
+            -var headless=true \
+            -var shutdown_command='shutdown /s /t 10 /f /d p:4:1 /c Packer_Shutdown' \
+            -var iso_url=$ISO_URL \
+            -var iso_checksum=$ISO_CHECKSUM \
+            -var vm_name=windows10 \
+            -var box_tag=HirotakaKato/windows10 \
+            eval-win10x64-enterprise.json
+          shasum -a 256 box/virtualbox/*.box
